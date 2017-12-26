@@ -1179,7 +1179,7 @@ class WXBot:
         try:
             self.get_uuid()
             self.gen_qr_code(os.path.join(self.temp_pwd,'wxqr.png'))
-            print '[INFO] Please use WeChat to scan the QR code .'
+            print '[INFO] 使用微信扫描二维码 .'
 
             result = self.wait4login()
             if result != SUCCESS:
@@ -1188,7 +1188,7 @@ class WXBot:
                 return
 
             if self.login():
-                print '[INFO] Web WeChat login succeed .'
+                print '[INFO] Web端微信登录成功 .'
             else:
                 print '[ERROR] Web WeChat login failed .'
                 self.status = 'loginout'
@@ -1317,6 +1317,7 @@ class WXBot:
                 self.pass_ticket = node.childNodes[0].data
 
         if '' in (self.skey, self.sid, self.uin, self.pass_ticket):
+            print "[ERROR] " + data # 输出详细的错误信息
             return False
 
         self.base_request = {

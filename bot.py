@@ -5,6 +5,10 @@ from wxbot import *
 import ConfigParser
 import json
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 
 class TulingWXBot(WXBot):
     def __init__(self):
@@ -45,7 +49,16 @@ class TulingWXBot(WXBot):
             print '    ROBOT:', result
             return result
         else:
-            return u"知道啦"
+            url = "http://127.0.0.1:8086/searchfaq?q="
+            querystring = msg
+            print "querystring=="  + querystring
+            r = requests.get(url + querystring)
+            print  r
+            result = r.text
+
+            print '    ROBOT:', result
+
+            return result
 
     def auto_switch(self, msg):
         msg_data = msg['content']['data']
@@ -63,6 +76,7 @@ class TulingWXBot(WXBot):
                     self.send_msg_by_uid(u'[Robot]' + u'机器人已开启！', msg['to_user_id'])
 
     def handle_msg_all(self, msg):
+        print msg
         if not self.robot_switch and msg['msg_type_id'] != 1:
             return
         if msg['msg_type_id'] == 1 and msg['content']['type'] == 0:  # reply to self
@@ -87,13 +101,35 @@ class TulingWXBot(WXBot):
                                 is_at_me = True
                                 break
                 if is_at_me:
-                    src_name = msg['content']['user']['name']
-                    reply = 'to ' + src_name + ': '
+                    src_name = msg['content']['user']['name']  # 来源
+                    reply = '@' + src_name + ': '
                     if msg['content']['type'] == 0:  # text message
                         reply += self.tuling_auto_reply(msg['content']['user']['id'], msg['content']['desc'])
                     else:
                         reply += u"对不起，只认字，其他杂七杂八的我都不认识，,,Ծ‸Ծ,,"
                     self.send_msg_by_uid(reply, msg['user']['id'])
+
+                group_name_list = [u'智能客服体验群', u'全民自动化-全栈']  # 指定群名称，在指定的群里面内容都回复
+                src_name = msg['content']['user']['name']  # 来源
+                group_name = msg['user']['name']
+
+                if group_name in group_name_list:
+                    print self.to_unicode(group_name)
+
+                    reply = '@' + src_name + ' '
+                    tulin_reply = '';
+                    if msg['content']['type'] == 0:  # text message
+                        tulin_reply = self.tuling_auto_reply(msg['content']['user']['id'], msg['content']['desc'])
+                        reply += tulin_reply
+                    else:
+                        reply += u"对不起，只认字，其他杂七杂八的我都不认识，,,Ծ‸Ծ,,"
+
+                    if tulin_reply != '':
+                        self.send_msg_by_uid(reply, msg['user']['id'])
+                else:
+
+                    print '不在指定的群里面' + group_name
+
 
 
 def main():
