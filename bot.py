@@ -4,6 +4,7 @@
 from wxbot import *
 import ConfigParser
 import json
+import platform
 
 import sys
 reload(sys)
@@ -131,11 +132,20 @@ class TulingWXBot(WXBot):
                     print '不在指定的群里面' + group_name
 
 
-
 def main():
     bot = TulingWXBot()
     bot.DEBUG = True
-    bot.conf['qr'] = 'png'
+
+    sysplatform = platform.system()
+    if sysplatform == "Windows":
+        bot.conf['qr'] = 'png'
+    elif sysplatform == "Linux":
+        bot.conf['qr'] = 'tty'
+    elif sysplatform == "Darwin":
+        bot.conf['qr'] = 'png'
+    else:
+        bot.conf['qr'] = 'png'
+
 
     bot.run()
 
