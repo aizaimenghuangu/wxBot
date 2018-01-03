@@ -6,12 +6,15 @@ import ConfigParser
 import json
 import platform
 
+from chatterbot import ChatBot
+
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
 class TulingWXBot(WXBot):
+
     def __init__(self):
         WXBot.__init__(self)
 
@@ -25,6 +28,31 @@ class TulingWXBot(WXBot):
         except Exception:
             pass
         print 'tuling_key:', self.tuling_key
+
+        # 初始化聊天机器人chatterbot
+        self.init_chatterbot()
+
+    def init_chatterbot(self):
+        self.chatbot = ChatBot(
+            'ktvme',
+            storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
+
+            logic_adapters=[
+                'chatterbot.logic.BestMatch',
+                'chatterbot.logic.MathematicalEvaluation',
+                'chatterbot.logic.TimeLogicAdapter'
+            ],
+            filters=[
+                'chatterbot.filters.RepetitiveResponseFilter'  # 滤掉重复的回答
+            ],
+
+            # input_adapter="chatterbot.input.TerminalAdapter",
+            # output_adapter="chatterbot.output.TerminalAdapter",
+            trainer='chatterbot.trainers.ListTrainer',
+            database="chatterbot",
+            database_uri="mongodb://192.168.10.140:27017/",
+            read_only=True  # 否则bot会学习每个输入
+        )
 
     def tuling_auto_reply(self, uid, msg):
         if self.tuling_key:
@@ -50,16 +78,23 @@ class TulingWXBot(WXBot):
             print '    ROBOT:', result
             return result
         else:
-            url = "http://127.0.0.1:8086/searchfaq?q="
-            querystring = msg
-            print "querystring=="  + querystring
-            r = requests.get(url + querystring)
-            print  r
-            result = r.text
+            if False:
+                url = "http://127.0.0.1:8086/searchfaq?q="
+                querystring = msg
+                print "querystring=="  + querystring
+                r = requests.get(url + querystring)
+                print  r
+                result = r.text
 
-            print '    ROBOT:', result
+                print '    ROBOT:', result
 
-            return result
+                return result
+            else:  # 在这里使用chatterbot回复
+                print "开始回复问题：" + msg
+                response = self.chatbot.get_response(msg)
+                print '    ROBOT:', response
+                return str(response)
+
 
     def auto_switch(self, msg):
         msg_data = msg['content']['data']
